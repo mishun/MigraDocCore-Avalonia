@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <RootNamespace>MigraDocCore.Rendering.Avalonia</RootNamespace>
+    <Platforms>AnyCPU</Platforms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Product>MigraDocCore-Avalonia</Product> 
+    <Copyright>Copyright © 2023</Copyright>
+    <PackageProjectUrl>https://github.com/mishun/MigraDocCore-Avalonia</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/mishun/MigraDocCore-Avalonia</RepositoryUrl>
+    <Description>Avalonia UI rendering for MigraDocCore/PdfSharpCore</Description>
+    <VersionPrefix>0.0.0</VersionPrefix>
+    <VersionSuffix>preview1</VersionSuffix>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Update="**\*.xaml.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
+    <AvaloniaResource Include="**\*.xaml">
+      <SubType>Designer</SubType>
+    </AvaloniaResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="**\*.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="0.10.22" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.10.22" />
+    <PackageReference Include="PdfSharpCore" Version="1.3.62" />
+    <PackageReference Include="MigraDocCore.DocumentObjectModel" Version="1.3.62" />
+    <PackageReference Include="MigraDocCore.Rendering" Version="1.3.62" />
+  </ItemGroup>
+</Project>

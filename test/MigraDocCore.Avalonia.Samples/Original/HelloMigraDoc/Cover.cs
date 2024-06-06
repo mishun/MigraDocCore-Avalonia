@@ -1,6 +1,7 @@
+using System;
+using System.Reflection;
 using MigraDocCore.DocumentObjectModel;
 using MigraDocCore.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace HelloMigraDoc
 {
@@ -16,9 +17,7 @@ namespace HelloMigraDoc
             var paragraph = section.AddParagraph();
             paragraph.Format.SpaceAfter = "3cm";
 
-            //var image = section.AddImage("../../../../assets/images/Logo landscape.png");
-            ImageSource.ImageSourceImpl = new PdfSharpCore.Utils.ImageSharpImageSource<Rgba32>();
-            var source = ImageSource.FromFile("../../../Assets/images/Logo landscape.png");
+            var source = ImageSource.FromStream("Logo landscape.png", () => Assembly.GetExecutingAssembly().GetManifestResourceStream("Logo landscape.png"));
             var image = section.AddImage(source);
             image.Width = "10cm";
 

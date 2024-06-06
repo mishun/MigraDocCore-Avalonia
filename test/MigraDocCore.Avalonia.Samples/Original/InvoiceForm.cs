@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Globalization;
+using System.IO;
+using System.Reflection;
 using System.Xml;
 using System.Xml.XPath;
 using MigraDocCore.DocumentObjectModel;
 using MigraDocCore.DocumentObjectModel.Tables;
 using MigraDocCore.DocumentObjectModel.Shapes;
 using MigraDocCore.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
-using SixLabors.ImageSharp.PixelFormats;
 using System.Diagnostics;
 
 namespace Invoice
@@ -39,11 +40,11 @@ namespace Invoice
         /// <summary>
         /// Initializes a new instance of the class InvoiceForm and opens the specified XML document.
         /// </summary>
-        public InvoiceForm(string filename)
+        public InvoiceForm(Stream stream)
         {
             var invoice = new XmlDocument();
             // An XML invoice based on a sample created with Microsoft InfoPath.
-            invoice.Load(filename);
+            invoice.Load(stream);
             _navigator = invoice.CreateNavigator();
         }
 
@@ -121,9 +122,7 @@ namespace Invoice
             section.PageSetup.TopMargin = "5.25cm";
 
             // Put the logo in the header.
-            //var image = section.Headers.Primary.AddImage("../../../../assets/images/MigraDoc.png");
-            ImageSource.ImageSourceImpl = new PdfSharpCore.Utils.ImageSharpImageSource<Rgba32>();
-            var source = ImageSource.FromFile("../../../Assets/images/MigraDoc.png");
+            var source = ImageSource.FromStream("MigraDoc.png", () => Assembly.GetExecutingAssembly().GetManifestResourceStream("MigraDoc.png"));
             var image = section.AddImage(source);
             image.Height = "3.5cm";
             image.LockAspectRatio = true;
@@ -382,7 +381,7 @@ namespace Invoice
                 var value = GetValue(nav, name);
                 if (value.Length == 0)
                     return 0;
-                return Double.Parse(value, CultureInfo.InvariantCulture);
+                return double.Parse(value, CultureInfo.InvariantCulture);
             }
             catch (Exception ex)
             {

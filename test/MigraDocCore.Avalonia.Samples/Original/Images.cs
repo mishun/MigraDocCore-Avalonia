@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Reflection;
 using MigraDocCore.DocumentObjectModel;
 using MigraDocCore.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace Images
 {
@@ -27,9 +27,7 @@ namespace Images
             // Add some text to the paragraph.
             paragraph.AddFormattedText("Hello, MigraDoc!", TextFormat.Italic);
             paragraph.Format.Font.Size = 20;
-            //section.AddImage("../../../../assets/images/MigraDoc.png");
-            ImageSource.ImageSourceImpl = new PdfSharpCore.Utils.ImageSharpImageSource<Rgba32>();
-            var source = ImageSource.FromFile("../../../Assets/images/MigraDoc.png");
+            var source = ImageSource.FromStream("MigraDoc.png", () => Assembly.GetExecutingAssembly().GetManifestResourceStream("MigraDoc.png"));
             var image = section.AddImage(source);
 
             return document;

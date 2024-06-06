@@ -1,9 +1,8 @@
 using Avalonia;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using PdfSharpCore.Drawing;
 
-namespace MigraDocCore.Avalonia.Rendering;
+namespace PdfSharpCore.Drawing.Avalonia;
 
 internal static class Media
 {

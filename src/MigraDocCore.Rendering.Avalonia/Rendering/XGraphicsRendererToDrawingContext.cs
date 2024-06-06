@@ -1,14 +1,16 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using Avalonia;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using PdfSharpCore.Drawing;
 
-namespace MigraDocCore.Avalonia.Rendering;
+namespace PdfSharpCore.Drawing.Avalonia;
 
-public class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
+internal class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
 {
     private readonly DrawingContext ctx;
+    private readonly CultureInfo textCulture;
     private readonly Stack<DrawingContext.PushedState> stack = new();
     private readonly Dictionary<XGraphicsState, int> gstate = new();
 
@@ -166,7 +168,7 @@ public class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
         if (text is null || xfont is null)
             return;
 
-        var font = this.GetFont(xfont);
+        var typeface = this.GetTypeface(xfont);
 
         var (textAlignment, offsetX) =
             format.Alignment switch
@@ -181,31 +183,21 @@ public class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
             format.LineAlignment switch
             {
                 XLineAlignment.Near => 0.0,
-                XLineAlignment.Center => (2.0 / 3.0) * font.Ascent + 0.5 * layoutRectangle.Height,
-                XLineAlignment.Far => font.Ascent - font.Descent + layoutRectangle.Height,
-                XLineAlignment.BaseLine => font.Ascent,
+                XLineAlignment.Center => (2.0 / 3.0) * typeface.GetAscent(xfont.Size) + 0.5 * layoutRectangle.Height,
+                XLineAlignment.Far => typeface.GetAscent(xfont.Size) - typeface.GetDescent(xfont.Size) + layoutRectangle.Height,
+                XLineAlignment.BaseLine => typeface.GetAscent(xfont.Size),
                 _ => 0.0
             };
 
-        var ft = font.Format(text, textAlignment);
-
-        var brush = this.GetBrush(xbrush);
-        var origin = new Point(layoutRectangle.X + offsetX, layoutRectangle.Y + offsetY);
-        this.ctx.DrawText(brush, origin, ft);
-
-        if (xfont.Strikeout)
+        var formattedText = new FormattedText(text, this.textCulture, FlowDirection.LeftToRight, typeface.Typeface, xfont.Size, this.GetBrush(xbrush))
         {
-            var l = new Point(ft.Bounds.Left, -font.Ascent + font.StrikethroughPosition);
-            var r = new Point(ft.Bounds.Right, -font.Ascent + font.StrikethroughPosition);
-            this.ctx.DrawLine(new Pen(brush, font.StrikethroughThickness), origin + l, origin + r);
-        }
+            TextAlignment = textAlignment
+        };
 
-        if (xfont.Underline)
-        {
-            var l = new Point(ft.Bounds.Left, -font.Ascent + font.UnderlinePosition);
-            var r = new Point(ft.Bounds.Right, -font.Ascent + font.UnderlinePosition);
-            this.ctx.DrawLine(new Pen(brush, font.UnderlineThickness), origin + l, origin + r);
-        }
+        if (this.GetTextDecorations(xfont) is TextDecorationCollection textDecorations)
+            formattedText.SetTextDecorations(textDecorations);
+
+        this.ctx.DrawText(formattedText, new Point(layoutRectangle.X + offsetX, layoutRectangle.Y + offsetY));
     }
 
     void IXGraphicsRenderer.DrawImage(XImage? ximage, double x, double y, double width, double height)
@@ -223,7 +215,7 @@ public class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
             return;
 
         using var image = this.GetImage(ximage);
-        this.ctx.DrawImage(image, Geometries.MakeRect(srcRect), Geometries.MakeRect(destRect), global::Avalonia.Visuals.Media.Imaging.BitmapInterpolationMode.HighQuality);
+        this.ctx.DrawImage(image, Geometries.MakeRect(srcRect), Geometries.MakeRect(destRect));
     }
 
     void IXGraphicsRenderer.Save(XGraphicsState state)
@@ -257,11 +249,11 @@ public class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
         switch (matrixOrder)
         {
             case XMatrixOrder.Prepend:
-                this.stack.Push(this.ctx.PushPreTransform(matrix));
+                this.stack.Push(this.ctx.PushTransform(matrix));
                 break;
 
             case XMatrixOrder.Append:
-                this.stack.Push(this.ctx.PushPostTransform(matrix));
+                this.stack.Push(this.ctx.PushTransform(matrix));
                 break;
         }
     }
@@ -282,13 +274,15 @@ public class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
     }
 
 
-    public XGraphicsRendererToDrawingContext(DrawingContext ctx)
+    internal XGraphicsRendererToDrawingContext(DrawingContext ctx, CultureInfo textCulture)
     {
         this.ctx = ctx;
+        this.textCulture = textCulture;
     }
 
 
 
+    [return: NotNullIfNotNull(nameof(xbrush))]
     private IBrush? GetBrush(XBrush? xbrush)
     {
         if (xbrush is null)
@@ -297,6 +291,7 @@ public class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
         return Media.MakeBrush(xbrush);
     }
 
+    [return: NotNullIfNotNull(nameof(xpen))]
     private IPen? GetPen(XPen? xpen)
     {
         if (xpen is null)
@@ -310,38 +305,23 @@ public class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
         return Media.MakeImage(ximage);
     }
 
-    private FontInfo GetFont(XFont xfont)
+
+    private TypefaceInfo GetTypeface(XFont xfont)
     {
-        return Fonts.MakeFont(xfont);
+        return Typefaces.GetTypefaceInfo(xfont);
     }
 
+    private static readonly TextDecorationCollection underlineAndStrikethrough = new TextDecorationCollection { new TextDecoration { Location = TextDecorationLocation.Underline }, new TextDecoration { Location = TextDecorationLocation.Strikethrough } };
 
-    public static double PageScaleFactor(XGraphicsUnit pageUnit)
+    private TextDecorationCollection? GetTextDecorations(XFont xfont)
     {
-        switch(pageUnit)
-        {
-            case XGraphicsUnit.Presentation: return 1.0;
-            case XGraphicsUnit.Point: return 96.0 / 72.0;
-            case XGraphicsUnit.Inch: return 96.0;
-            case XGraphicsUnit.Millimeter: return 96.0 / 25.4;
-            case XGraphicsUnit.Centimeter: return 96.0 / 2.54;
-            default: return 1.0;
-        }
-    }
-}
+        if (xfont.Strikeout && xfont.Underline)
+            return underlineAndStrikethrough;
+        if (xfont.Strikeout)
+            return TextDecorations.Strikethrough;
+        if (xfont.Underline)
+            return TextDecorations.Underline;
 
-
-public static class XGraphicsExtensions
-{
-    public static XGraphics FromDrawingContext(DrawingContext context, XSize size)
-    {
-        var adapter = new XGraphicsRendererToDrawingContext(context);
-        return XGraphics.FromRenderer(adapter, size, XGraphicsUnit.Point, XPageDirection.Downwards);
-    }
-
-    public static IDisposable PushPageTransform(DrawingContext context, XGraphics gfx)
-    {
-        var scale = XGraphicsRendererToDrawingContext.PageScaleFactor(gfx.PageUnit);
-        return context.PushPreTransform(Matrix.CreateScale(scale, scale));
+        return null;
     }
 }

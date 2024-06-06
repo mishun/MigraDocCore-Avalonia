@@ -1,8 +1,7 @@
 using Avalonia;
 using Avalonia.Media;
-using PdfSharpCore.Drawing;
 
-namespace MigraDocCore.Avalonia.Rendering;
+namespace PdfSharpCore.Drawing.Avalonia;
 
 internal static class Geometries
 {

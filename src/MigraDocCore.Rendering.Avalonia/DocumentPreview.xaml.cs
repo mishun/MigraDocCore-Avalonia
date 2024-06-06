@@ -26,7 +26,10 @@ namespace MigraDocCore.Avalonia
 
                 this.document = value;
                 var pages = this.FindControl<ItemsControl>("pages");
-                pages.Items = MakePages(document);
+                if (pages is not null)
+                {
+                    pages.ItemsSource = MakePages(document);
+                }
             }
         }
 

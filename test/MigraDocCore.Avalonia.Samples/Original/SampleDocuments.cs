@@ -1,9 +1,17 @@
+using System.Reflection;
 using MigraDocCore.DocumentObjectModel;
+using MigraDocCore.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace MigraDocCore.Avalonia.Samples
 {
     sealed class SampleDocuments
     {
+        static SampleDocuments()
+        {
+            ImageSource.ImageSourceImpl = new PdfSharpCore.Utils.ImageSharpImageSource<Rgba32>();
+        }
+
         /// <summary>
         /// Creates the initial sample document.
         /// </summary>
@@ -65,7 +73,8 @@ namespace MigraDocCore.Avalonia.Samples
 
         public static Document CreateSample3()
         {
-            return new Invoice.InvoiceForm("../../../Assets/xml/Invoice.xml").CreateDocument();
+            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Invoice.xml");
+            return new Invoice.InvoiceForm(stream).CreateDocument();
         }
 
         public static Document CreateSample4()

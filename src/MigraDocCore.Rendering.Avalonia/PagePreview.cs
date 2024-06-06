@@ -1,10 +1,11 @@
 using System;
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using PdfSharpCore.Drawing;
 using MigraDocCore.Rendering;
-using MigraDocCore.Avalonia.Rendering;
+using PdfSharpCore.Drawing;
+using PdfSharpCore.Drawing.Avalonia;
 
 namespace MigraDocCore.Avalonia
 {
@@ -44,19 +45,16 @@ namespace MigraDocCore.Avalonia
                 var size = new XSize(this.info.Width, this.info.Height);
 
                 var (renderer, pageNumber) = this.page;
-                if (renderer is not null)
+                if (renderer is not null && pageNumber >= 1 && pageNumber <= renderer.FormattedDocument.PageCount)
                 {
-                    using var gfx = XGraphicsExtensions.FromDrawingContext(context, size);
-                    using var _ = XGraphicsExtensions.PushPageTransform(context, gfx);
+                    using var gfx = XGraphics.FromRenderer(context.CreateXGraphicsRenderer(CultureInfo.CurrentCulture), size, XGraphicsUnit.Point, XPageDirection.Downwards);
+                    using var _ = context.PushXGraphicsUnitTransform(gfx.PageUnit);
                     renderer.RenderPage(gfx, pageNumber, PageRenderOptions.All);
                 }
 
-                if (this.info is not null)
-                {
-                    var (width, height) = GetDimensions(this.info);
-                    var outline = new Rect(0, 0, width, height);
-                    context.DrawRectangle(null, new Pen(Brushes.DarkGray, 1.0), outline);
-                }
+                var (width, height) = GetDimensions(this.info);
+                var outline = new Rect(0, 0, width, height);
+                context.DrawRectangle(null, new Pen(Brushes.DarkGray, 1.0), outline);
             }
 
             base.Render(context);

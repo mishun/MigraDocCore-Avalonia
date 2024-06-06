@@ -4,10 +4,12 @@ using System.Diagnostics;
 using System.IO;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Platform.Storage;
 using Avalonia.Markup.Xaml;
 using ReactiveUI;
 using MigraDocCore.DocumentObjectModel;
 using MigraDocCore.Rendering;
+using System.Text;
 
 namespace MigraDocCore.Avalonia.Samples
 {
@@ -33,28 +35,28 @@ namespace MigraDocCore.Avalonia.Samples
         {
             try
             {
-                var dialog = new SaveFileDialog
-                {
-                    DefaultExtension = "pdf",
-                    InitialFileName = this.Header,
-                    Directory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                    Filters = new List<FileDialogFilter> { new FileDialogFilter { Name = "PDF document", Extensions = new List<string> { "pdf" } } }
-                };
-
                 if (Application.Current.ApplicationLifetime is global::Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime lifetime)
                 {
-                    var path = await dialog.ShowAsync(lifetime.MainWindow);
-                    if (string.IsNullOrEmpty(path))
+                    var opts = new FilePickerSaveOptions() {
+                        SuggestedFileName = $"{this.Header}.pdf",
+                        DefaultExtension = "pdf",
+                        FileTypeChoices = new[] { new FilePickerFileType("PDF document") { Patterns = new[] { "*.pdf" } } },
+                        SuggestedStartLocation = await lifetime.MainWindow.StorageProvider.TryGetWellKnownFolderAsync(WellKnownFolder.Pictures)
+                    };
+
+                    var pickedFile = await lifetime.MainWindow.StorageProvider.SaveFilePickerAsync(opts);
+                    if (pickedFile is null)
+                    {
                         return;
+                    }
 
                     {
-                        var pdfRenderer = new PdfDocumentRenderer(true);
-                        pdfRenderer.Document = this.makeDocument();
+                        var pdfRenderer = new PdfDocumentRenderer(true) { Document = this.makeDocument() };
                         pdfRenderer.RenderDocument();
                         using var memory = new MemoryStream();
                         pdfRenderer.PdfDocument.Save(memory);
-                        using var file = File.Create(path);
-                        await file.WriteAsync(memory.ToArray());
+                        using var stream = await pickedFile.OpenWriteAsync();
+                        await stream.WriteAsync(memory.ToArray());
                     }
                 }
             }
@@ -71,8 +73,7 @@ namespace MigraDocCore.Avalonia.Samples
                 var path = $"{this.Header}-{Guid.NewGuid().ToString("N").ToUpper()}.pdf";
 
                 {
-                    var pdfRenderer = new PdfDocumentRenderer(true);
-                    pdfRenderer.Document = this.makeDocument();
+                    var pdfRenderer = new PdfDocumentRenderer(true) { Document = this.makeDocument() };
                     pdfRenderer.RenderDocument();
                     using var memory = new MemoryStream();
                     pdfRenderer.PdfDocument.Save(memory);
@@ -97,23 +98,27 @@ namespace MigraDocCore.Avalonia.Samples
         {
             try
             {
-                var dialog = new SaveFileDialog
-                {
-                    DefaultExtension = "mdddl",
-                    InitialFileName = this.Header,
-                    Directory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                    Filters = new List<FileDialogFilter> { new FileDialogFilter { Name = "DDL document", Extensions = new List<string> { "mdddl" } } }
-                };
-
                 if (Application.Current.ApplicationLifetime is global::Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime lifetime)
                 {
-                    var path = await dialog.ShowAsync(lifetime.MainWindow);
-                    if (string.IsNullOrEmpty(path))
+                    var opts = new FilePickerSaveOptions() {
+                        SuggestedFileName = $"{this.Header}.mdddl",
+                        DefaultExtension = "mdddl",
+                        FileTypeChoices = new[] { new FilePickerFileType("DDL document") { Patterns = new[] { "*.mdddl" } } },
+                        SuggestedStartLocation = await lifetime.MainWindow.StorageProvider.TryGetWellKnownFolderAsync(WellKnownFolder.Documents)
+                    };
+
+                    var pickedFile = await lifetime.MainWindow.StorageProvider.SaveFilePickerAsync(opts);
+                    if (pickedFile is null)
+                    {
                         return;
+                    }
 
                     {
                         var document = this.makeDocument();
-                        DocumentObjectModel.IO.DdlWriter.WriteToFile(document, path);
+                        var ddlString = DocumentObjectModel.IO.DdlWriter.WriteToString(document);
+                        using var stream = await pickedFile.OpenWriteAsync();
+                        using var writer = new StreamWriter(stream, Encoding.UTF8);
+                        await writer.WriteAsync(ddlString);
                     }
                 }
             }

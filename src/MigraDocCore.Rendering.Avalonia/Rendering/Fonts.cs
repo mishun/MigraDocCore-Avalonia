@@ -1,45 +1,31 @@
 using System;
 using Avalonia;
 using Avalonia.Media;
-using Avalonia.Media.TextFormatting;
-using PdfSharpCore.Drawing;
 
-namespace MigraDocCore.Avalonia.Rendering;
+namespace PdfSharpCore.Drawing.Avalonia;
 
 
-internal class FontInfo
+internal class TypefaceInfo
 {
     private readonly Typeface typeface;
-    private readonly double fontSize;
     private readonly FontMetrics metrics;
 
-    public FontInfo(Typeface typeface, double fontSize)
+    public TypefaceInfo(Typeface typeface, IGlyphTypeface glyphTypeface)
     {
         this.typeface = typeface;
-        this.fontSize = fontSize;
-        this.metrics = new FontMetrics(typeface, fontSize);
+        this.metrics = glyphTypeface.Metrics;
     }
 
-    public double Ascent => this.metrics.Ascent;
-    public double Descent => this.metrics.Descent;
+    public Typeface Typeface => this.typeface;
 
-    public double StrikethroughPosition => this.metrics.StrikethroughPosition;
-    public double StrikethroughThickness => this.metrics.StrikethroughThickness;
-
-    public double UnderlinePosition => this.metrics.UnderlinePosition;
-    public double UnderlineThickness => this.metrics.UnderlineThickness;
-
-    public FormattedText Format(string text, TextAlignment textAlignment)
-    {
-        var ft = new FormattedText(text, this.typeface, this.fontSize, textAlignment, TextWrapping.NoWrap, Size.Infinity);
-        return ft;
-    }
+    public double GetAscent(double fontEmHeight) => fontEmHeight * this.metrics.Ascent / this.metrics.DesignEmHeight;
+    public double GetDescent(double fontEmHeight) => fontEmHeight * this.metrics.Descent / this.metrics.DesignEmHeight;
 }
 
-internal static class Fonts
+internal static class Typefaces
 {
     private static readonly (string, FontWeight?, FontStyle?)[] fontTags =
-        new (string, FontWeight?, FontStyle?)[] {
+        [
             ("Black", FontWeight.Black, null),
             ("Black Italic", FontWeight.Black, FontStyle.Italic),
             ("Bold", FontWeight.Bold, null),
@@ -50,7 +36,7 @@ internal static class Fonts
             ("Semibold Italic", FontWeight.SemiBold, FontStyle.Italic),
             ("Semilight", FontWeight.SemiLight, null),
             ("Semilight Italic", FontWeight.SemiLight, FontStyle.Italic)
-        };
+        ];
 
 
     private static (string, FontWeight, FontStyle) LookupTags(XFont xfont)
@@ -67,12 +53,28 @@ internal static class Fonts
         return (name, defaultWeight, defaultStyle);
     }
 
-    public static FontInfo MakeFont(XFont xfont)
+    public static TypefaceInfo GetTypefaceInfo(XFont xfont)
     {
         var (familyName, fontWeight, fontStyle) = LookupTags(xfont);
-        //Console.WriteLine(familyName);
+
         var fontFamily = new FontFamily(familyName);
         var typeface = new Typeface(fontFamily, fontStyle, fontWeight);
-        return new FontInfo(typeface, xfont.Size);
+        var manager = FontManager.Current;
+        if(manager.TryGetGlyphTypeface(typeface, out var glyphTypeface))
+        {
+            return new TypefaceInfo(typeface, glyphTypeface);
+        }
+        else
+        {
+            var fallbackTypeface = new Typeface(manager.DefaultFontFamily, typeface.Style, typeface.Weight);
+            if(manager.TryGetGlyphTypeface(typeface, out var fallbackGlyphTypeface))
+            {
+                return new TypefaceInfo(fallbackTypeface, fallbackGlyphTypeface);
+            }
+            else
+            {
+                throw new Exception("No glyph typeface found");
+            }
+        }
     }
 }

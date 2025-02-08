@@ -45,7 +45,7 @@ internal static class Typefaces
         var defaultWeight = xfont.Bold ? FontWeight.Bold : FontWeight.Normal;
         var defaultStyle = xfont.Italic ? FontStyle.Italic : FontStyle.Normal;
         foreach (var (suffix, fontWeght, fontStyle) in fontTags)
-            if (name.EndsWith(suffix))
+            if(name.EndsWith(suffix))
             {
                 var trimmed = name.Substring(0, name.Length - suffix.Length).Trim();
                 return (trimmed, fontWeght ?? defaultWeight, fontStyle ?? defaultStyle);

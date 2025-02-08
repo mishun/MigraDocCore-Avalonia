@@ -17,7 +17,7 @@ internal class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
 
     void IXGraphicsRenderer.Close()
     {
-        while (this.stack.Count > 0)
+        while(this.stack.Count > 0)
         {
             this.stack.Pop().Dispose();
         }
@@ -25,7 +25,7 @@ internal class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
 
     void IXGraphicsRenderer.DrawLine(XPen? xpen, double x1, double y1, double x2, double y2)
     {
-        if (xpen is null)
+        if(xpen is null)
             return;
 
         var pen = this.GetPen(xpen);
@@ -34,7 +34,7 @@ internal class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
 
     void IXGraphicsRenderer.DrawLines(XPen? xpen, XPoint[]? points)
     {
-        if (points is null || points.Length < 1 || xpen is null)
+        if(points is null || points.Length < 1 || xpen is null)
             return;
 
         var geom = Geometries.MakePolyLine(points, false);
@@ -44,7 +44,7 @@ internal class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
 
     void IXGraphicsRenderer.DrawBezier(XPen? xpen, double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4)
     {
-        if (xpen is null)
+        if(xpen is null)
             return;
 
         var geom = Geometries.MakeBezier(x1, y1, x2, y2, x3, y3, x4, y4);
@@ -54,7 +54,7 @@ internal class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
 
     void IXGraphicsRenderer.DrawBeziers(XPen? xpen, XPoint[]? points)
     {
-        if (points is null || points.Length < 4 || xpen is null)
+        if(points is null || points.Length < 4 || xpen is null)
             return;
 
         var geom = Geometries.MakeBeziers(points);
@@ -64,7 +64,7 @@ internal class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
 
     void IXGraphicsRenderer.DrawCurve(XPen? xpen, XPoint[]? points, double tension)
     {
-        if (points is null || points.Length < 2 || xpen is null)
+        if(points is null || points.Length < 2 || xpen is null)
             return;
 
         var geom = Geometries.MakeCurve(points, tension / 3.0, false, null);
@@ -74,7 +74,7 @@ internal class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
 
     void IXGraphicsRenderer.DrawArc(XPen? xpen, double x, double y, double width, double height, double startAngle, double sweepAngle)
     {
-        if (xpen is null)
+        if(xpen is null)
             return;
 
         var geom = Geometries.MakeArc(x, y, width, height, startAngle, sweepAngle);
@@ -84,7 +84,7 @@ internal class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
 
     void IXGraphicsRenderer.DrawRectangle(XPen? xpen, XBrush? xbrush, double x, double y, double width, double height)
     {
-        if (xpen is null && xbrush is null)
+        if(xpen is null && xbrush is null)
             return;
 
         var brush = this.GetBrush(xbrush);
@@ -94,18 +94,18 @@ internal class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
 
     void IXGraphicsRenderer.DrawRectangles(XPen? xpen, XBrush? xbrush, XRect[] rects)
     {
-        if (rects is null || rects.Length < 1 || (xpen is null && xbrush is null))
+        if(rects is null || rects.Length < 1 || (xpen is null && xbrush is null))
             return;
 
         var brush = this.GetBrush(xbrush);
         var pen = this.GetPen(xpen);
-        foreach (var rect in rects)
+        foreach(var rect in rects)
             this.ctx.DrawRectangle(brush, pen, Geometries.MakeRect(rect));
     }
 
     void IXGraphicsRenderer.DrawRoundedRectangle(XPen? xpen, XBrush? xbrush, double x, double y, double width, double height, double ellipseWidth, double ellipseHeight)
     {
-        if (xpen is null && xbrush is null)
+        if(xpen is null && xbrush is null)
             return;
 
         var rect = new Rect(x, y, width, height);
@@ -116,7 +116,7 @@ internal class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
 
     void IXGraphicsRenderer.DrawEllipse(XPen? xpen, XBrush? xbrush, double x, double y, double width, double height)
     {
-        if (xpen is null && xbrush is null)
+        if(xpen is null && xbrush is null)
             return;
 
         var geom = Geometries.MakeEllipse(x, y, width, height);
@@ -127,7 +127,7 @@ internal class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
 
     void IXGraphicsRenderer.DrawPolygon(XPen? xpen, XBrush? xbrush, XPoint[]? points, XFillMode fillmode)
     {
-        if (points is null || points.Length < 1 || (xpen is null && xbrush is null))
+        if(points is null || points.Length < 1 || (xpen is null && xbrush is null))
             return;
 
         var geom = Geometries.MakePolygon(points, fillmode);
@@ -138,7 +138,7 @@ internal class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
 
     void IXGraphicsRenderer.DrawPie(XPen? xpen, XBrush? xbrush, double x, double y, double width, double height, double startAngle, double sweepAngle)
     {
-        if (xpen is null && xbrush is null)
+        if(xpen is null && xbrush is null)
             return;
 
         // Not implemented
@@ -146,7 +146,7 @@ internal class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
 
     void IXGraphicsRenderer.DrawClosedCurve(XPen? xpen, XBrush? xbrush, XPoint[]? points, double tension, XFillMode fillmode)
     {
-        if (points is null || points.Length < 2 || (xpen is null && xbrush is null))
+        if(points is null || points.Length < 2 || (xpen is null && xbrush is null))
             return;
 
         var geom = Geometries.MakeCurve(points, tension / 3.0, true, fillmode);
@@ -157,7 +157,7 @@ internal class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
 
     void IXGraphicsRenderer.DrawPath(XPen? xpen, XBrush? xbrush, XGraphicsPath path)
     {
-        if (path is null || (xpen is null && xbrush is null))
+        if(path is null || (xpen is null && xbrush is null))
             return;
 
         // Not implemented
@@ -165,7 +165,7 @@ internal class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
 
     void IXGraphicsRenderer.DrawString(string text, XFont? xfont, XBrush xbrush, XRect layoutRectangle, XStringFormat format)
     {
-        if (text is null || xfont is null)
+        if(text is null || xfont is null)
             return;
 
         var typeface = this.GetTypeface(xfont);
@@ -194,7 +194,7 @@ internal class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
             TextAlignment = textAlignment
         };
 
-        if (this.GetTextDecorations(xfont) is TextDecorationCollection textDecorations)
+        if(this.GetTextDecorations(xfont) is TextDecorationCollection textDecorations)
             formattedText.SetTextDecorations(textDecorations);
 
         this.ctx.DrawText(formattedText, new Point(layoutRectangle.X + offsetX, layoutRectangle.Y + offsetY));
@@ -202,7 +202,7 @@ internal class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
 
     void IXGraphicsRenderer.DrawImage(XImage? ximage, double x, double y, double width, double height)
     {
-        if (ximage is null || width <= 0.0 || height <= 0.0)
+        if(ximage is null || width <= 0.0 || height <= 0.0)
             return;
 
         using var image = this.GetImage(ximage);
@@ -211,7 +211,7 @@ internal class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
 
     void IXGraphicsRenderer.DrawImage(XImage? ximage, XRect destRect, XRect srcRect, XGraphicsUnit srcUnit)
     {
-        if (ximage is null)
+        if(ximage is null)
             return;
 
         using var image = this.GetImage(ximage);
@@ -225,7 +225,7 @@ internal class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
 
     void IXGraphicsRenderer.Restore(XGraphicsState state)
     {
-        if (this.gstate.TryGetValue(state, out var target))
+        if(this.gstate.TryGetValue(state, out var target))
         {
             this.gstate.Remove(state);
             while (this.stack.Count > target)
@@ -285,7 +285,7 @@ internal class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
     [return: NotNullIfNotNull(nameof(xbrush))]
     private IBrush? GetBrush(XBrush? xbrush)
     {
-        if (xbrush is null)
+        if(xbrush is null)
             return null;
 
         return Media.MakeBrush(xbrush);
@@ -294,7 +294,7 @@ internal class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
     [return: NotNullIfNotNull(nameof(xpen))]
     private IPen? GetPen(XPen? xpen)
     {
-        if (xpen is null)
+        if(xpen is null)
             return null;
 
         return Media.MakePen(xpen);
@@ -315,11 +315,11 @@ internal class XGraphicsRendererToDrawingContext : IXGraphicsRenderer
 
     private TextDecorationCollection? GetTextDecorations(XFont xfont)
     {
-        if (xfont.Strikeout && xfont.Underline)
+        if(xfont.Strikeout && xfont.Underline)
             return underlineAndStrikethrough;
-        if (xfont.Strikeout)
+        if(xfont.Strikeout)
             return TextDecorations.Strikethrough;
-        if (xfont.Underline)
+        if(xfont.Underline)
             return TextDecorations.Underline;
 
         return null;

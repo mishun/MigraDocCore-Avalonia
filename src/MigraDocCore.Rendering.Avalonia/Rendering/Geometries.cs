@@ -17,7 +17,7 @@ internal static class Geometries
 
     private static void BeginFigureAt(StreamGeometryContext ctx, XPoint p, XFillMode? fillMode)
     {
-        if (fillMode is XFillMode fm)
+        if(fillMode is XFillMode fm)
         {
             ctx.SetFillRule(GetFillRule(fm));
             ctx.BeginFigure(new Point(p.X, p.Y), true);
@@ -41,7 +41,7 @@ internal static class Geometries
         var g = new StreamGeometry();
         using var ctx = g.Open();
         BeginFigureAt(ctx, points[0], null);
-        for (int i = 1; i < points.Length; i++)
+        for(int i = 1; i < points.Length; i++)
         {
             var p = points[i];
             ctx.LineTo(new Point(p.X, p.Y));
@@ -55,7 +55,7 @@ internal static class Geometries
         var g = new StreamGeometry();
         using var ctx = g.Open();
         BeginFigureAt(ctx, points[0], fillMode);
-        for (int i = 1; i < points.Length; i++)
+        for(int i = 1; i < points.Length; i++)
         {
             var p = points[i];
             ctx.LineTo(new Point(p.X, p.Y));
@@ -79,7 +79,7 @@ internal static class Geometries
         var g = new StreamGeometry();
         using var ctx = g.Open();
         BeginFigureAt(ctx, points[0], null);
-        for (int i = 1; i + 2 < points.Length; i += 3)
+        for(int i = 1; i + 2 < points.Length; i += 3)
         {
             var p0 = points[i];
             var p1 = points[i + 1];
@@ -127,18 +127,18 @@ internal static class Geometries
     public static Geometry MakeArc(double x, double y, double width, double height, double startAngle, double sweepAngle)
     {
         var α = startAngle;
-        if (α < 0.0)
+        if(α < 0.0)
             α = α + (1.0 + Math.Floor((Math.Abs(α) / 360.0))) * 360.0;
-        else if (α > 360.0)
+        else if(α > 360.0)
             α = α - Math.Floor(α / 360.0) * 360.0;
 
-        if (Math.Abs(sweepAngle) >= 360.0)
+        if(Math.Abs(sweepAngle) >= 360.0)
            sweepAngle = Math.Sign(sweepAngle) * 360.0;
 
         var β = startAngle + sweepAngle;
-        if (β < 0.0)
+        if(β < 0.0)
             β = β + (1.0 + Math.Floor((Math.Abs(β) / 360.0))) * 360.0;
-        else if (β > 360.0)
+        else if(β > 360.0)
             β = β - Math.Floor(β / 360.0) * 360.0;
 
         if (α == 0.0 && β < 0.0)
